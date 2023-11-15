@@ -2,6 +2,10 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 import datetime
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+
 
 
 class Eliminable(models.Model):
@@ -83,6 +87,15 @@ class PerfilUsuario(Eliminable):
     description = models.TextField(blank=True, null=True)
     profile_image = models.ImageField(upload_to='profile_images/', blank=True, null=True)
     profile_filter = models.CharField(max_length=20, default='none')
+    
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        PerfilUsuario.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    instance.perfilusuario.save()
 
 class Reporte(models.Model):
     REPORT_CHOICES = [
